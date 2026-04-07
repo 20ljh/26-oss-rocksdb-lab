@@ -1,0 +1,22 @@
+# RocksDB Data
+rocksdb_data/
+
+# Claude Code Context
+CLAUDE.md
+
+# 아래는 Docker 환경에서는 컨테이너 내에 생성되지만 실수를 막기 위하여 추가
+# Build artifacts
+build/
+
+# Docker logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
