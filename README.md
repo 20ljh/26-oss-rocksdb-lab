@@ -19,7 +19,7 @@
 
 ```
 # 코드 다운로드
-git clone [https://github.com/20ljh/26-oss-rocksdb-lab.git](https://github.com/20ljh/26-oss-rocksdb-lab.git)
+git clone https://github.com/20ljh/26-oss-rocksdb-lab.git
 
 # 프로젝트 폴더로 이동
 cd 26-oss-rocksdb-lab
