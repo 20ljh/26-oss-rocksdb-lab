@@ -1,8 +1,21 @@
 # RocksDB Data
 rocksdb_data/
 
+# RocksDB 소스 분석용 클론
+rocksdb-src/
+
+# RocksDB db_bench 결과 저장 폴더
+db_bench_log/
+
 # Claude Code Context
 CLAUDE.md
+.claude/
+
+# VSCode settings
+.vscode/
+
+# 참고 및 정리용 문서 폴더
+docs/
 
 # 아래는 Docker 환경에서는 컨테이너 내에 생성되지만 실수를 막기 위하여 추가
 # Build artifacts

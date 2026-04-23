@@ -4,7 +4,8 @@ services:
     container_name: rocksdb-practice
     volumes:
       - ./rocksdb_data:/root/rocksdb_data
-    stdin_open: true
-    tty: true
-    # 'always' 대신 'no'로 변경하여 테스트가 끝나면 멈추도록 설정합니다.
+      - ./db_bench_log:/root/db_bench_log
+    environment:
+      - TARGET=${TARGET:-}
+      - DB_BENCH_ARGS=${DB_BENCH_ARGS:-}
     restart: "no"

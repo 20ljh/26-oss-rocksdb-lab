@@ -28,6 +28,7 @@ RUN git clone --depth 1 https://github.com/facebook/rocksdb.git
 # -fPIC: 나중에 실행 파일에 묶기 위한 설정
 WORKDIR /src/rocksdb
 RUN DEBUG_LEVEL=0 PORTABLE=1 EXTRA_CXXFLAGS="-fPIC" make -j$(nproc) static_lib
+RUN DEBUG_LEVEL=0 PORTABLE=1 EXTRA_CXXFLAGS="-fPIC" make -j$(nproc) db_bench
 
 # 빌드된 파일들을 시스템 경로로 이동
 RUN cp -r include/rocksdb /usr/local/include/ && \
@@ -43,14 +44,20 @@ RUN mkdir build && cd build && \
 # Stage 3: Runtime Stage (최종 실행 이미지)
 FROM ubuntu:22.04
 
-# 실행 시 필요한 압축 라이브러리 설치
+# 실행 시 필요한 라이브러리 설치
+# libgflags2.2: db_bench 런타임 의존성
 RUN apt-get update && apt-get install -y \
     libsnappy1v5 liblz4-1 libzstd1 libbz2-1.0 zlib1g \
+    libgflags2.2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root/
-# 정적 링크된 실행 파일만 복사 (librocksdb.a가 이 안에 내장됨)
 COPY --from=builder /app/build/rocksdb_test .
+COPY --from=builder /src/rocksdb/db_bench .
 
-# 실행
-CMD ["./rocksdb_test"]
+COPY --from=builder /app/run.sh .
+RUN chmod +x run.sh
+
+# TARGET=db_bench -> db_bench 실행 (DB_BENCH_ARGS로 옵션 전달)
+# TARGET 미지정 -> rocksdb_test 실행
+CMD ["./run.sh"]
