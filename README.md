@@ -1,4 +1,4 @@
-# 🧪 26-oss-rocksdb-lab
+# 🧪 RocksDB CRUD 실습 및 벤치마킹
 
 이 프로젝트는 **RocksDB 소스 코드를 직접 빌드**하고, 최신 **C++20 환경**에서 데이터베이스의 기본적인 CRUD 기능을 실습할 수 있도록 구성되었습니다.
 
@@ -47,24 +47,17 @@ docker-compose up --build
 docker-compose up
 ```
 
-**1단계 : 데이터 저장 및 출력 (Put & Get)**
+- 1단계 : **데이터 저장 (Create)** : K-V쌍 (A, 123), (B, 456), (C, 789)가 저장됩니다.
 
-- 터미널 로그에 `저장 완료: [oss:project -> 26-oss-rocksdb-lab]` 메시지가 뜨는지 확인합니다.
-- 이후 `조회 결과: 26-oss-rocksdb-lab`이 출력된다면 RocksDB 메모리(MemTable)와 디스크(SST) 간의 입출력이 정상적으로 이루어진 것입니다.
+- 2단계 : **데이터 조회 (Read)** : A, B, C 세 키의 값이 순서대로 출력됩니다.
 
-**2단계 : 데이터 삭제 및 검증 (Delete)**
+- 3단계 : **데이터 수정 (Update)** : B의 값을 456789로 수정합니다. (RocksDB는 별도의 Update API 없이 `Put`으로 동일 키를 덮어씁니다)
 
-- `데이터 삭제됨` 메시지 이후 `검증 성공: 삭제 후 데이터가 존재하지 않습니다.` 메시지를 확인합니다.
-- **이유** : RocksDB가 해당 키에 툼스톤(Tombstone) 마크를 남겨 논리적으로 삭제했음을 의미합니다.
+- 4단계 : **데이터 삭제 및 검증 (Delete)** : A를 삭제합니다. (RocksDB는 해당 키에 툼스톤(Tombstone) 마크를 남겨 논리적으로 삭제합니다)
 
-**3단계 : 데이터 영속성 확인 (Persistence)**
+- 5단계 : **데이터 영속성 확인 (Persistence)** : 프로젝트 폴더 내 **`rocksdb_data/`** 폴더에 `LOG`, `MANIFEST`, `CURRENT` 파일이 생성되어 있는지 확인합니다. (Docker 바인드 마운트를 통해 컨테이너 내부 데이터가 호스트에 실시간으로 저장됩니다)
 
-- 윈도우 탐색기에서 프로젝트 폴더 내의 **`rocksdb_data/`** 폴더를 확인합니다.
-- **결과** : `LOG`, `MANIFEST`, `CURRENT` 등의 파일이 생성되어 있습니다.
-
-  - *이유 : Docker의 바인드 마운트 기능을 통해 컨테이너 내부의 데이터가 실제 호스트 컴퓨터에 실시간으로 저장되었기 때문입니다.*
-
-### 2. 성능 벤치마크 실행 (db_bench)
+### 2. 성능 벤치마킹 (db_bench)
 
 `TARGET=db_bench`로 실행하면 RocksDB 공식 벤치마크 도구인 `db_bench`를 사용할 수 있습니다.
 
@@ -76,7 +69,7 @@ TARGET=db_bench docker-compose up
 TARGET=db_bench DB_BENCH_ARGS="--benchmarks=fillseq,readrandom --bloom_bits=10 --statistics" docker-compose up
 ```
 
-실행 결과는 **`db_bench_log/`** 폴더에 `db_bench_(실행시각).log` 파일로 자동 저장됩니다. 파일 첫 줄에 실행 명령어, 이후 줄에 전체 출력 내역이 기록됩니다.
+실행 결과는 **`db_bench_log/`** 폴더에 `db_bench_(실행시각).log` 파일로 자동 저장됩니다. 로그 파일 첫 줄에 실행 명령어, 이후 줄에 전체 출력 내역이 기록됩니다.
 
 ## 🛑 서버 종료 및 정리
 
