@@ -4,6 +4,10 @@ rocksdb_data/
 # RocksDB 소스 분석용 클론
 rocksdb-src/
 
+# 로그 파서 실행 파일 및 설정 파일
+log_parser.exe
+log_parser_config.txt
+
 # RocksDB db_bench 결과 저장 폴더
 db_bench_log/
 

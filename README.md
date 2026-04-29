@@ -51,11 +51,11 @@ docker-compose up
 
 - 2단계 : **데이터 조회 (Read)** : A, B, C 세 키의 값이 순서대로 출력됩니다.
 
-- 3단계 : **데이터 수정 (Update)** : B의 값을 456789로 수정합니다. (RocksDB는 별도의 Update API 없이 `Put`으로 동일 키를 덮어씁니다)
+- 3단계 : **데이터 수정 (Update)** : B의 값을 456789로 수정합니다. (RocksDB는 별도의 Update API 없이 `Put`으로 동일 키를 덮어씁니다.)
 
-- 4단계 : **데이터 삭제 및 검증 (Delete)** : A를 삭제합니다. (RocksDB는 해당 키에 툼스톤(Tombstone) 마크를 남겨 논리적으로 삭제합니다)
+- 4단계 : **데이터 삭제 및 검증 (Delete)** : A를 삭제합니다. (RocksDB는 해당 키에 툼스톤(Tombstone) 마크를 남겨 논리적으로 삭제합니다.)
 
-- 5단계 : **데이터 영속성 확인 (Persistence)** : 프로젝트 폴더 내 **`rocksdb_data/`** 폴더에 `LOG`, `MANIFEST`, `CURRENT` 파일이 생성되어 있는지 확인합니다. (Docker 바인드 마운트를 통해 컨테이너 내부 데이터가 호스트에 실시간으로 저장됩니다)
+- 5단계 : **데이터 영속성 확인 (Persistence)** : 프로젝트 폴더 내 **`rocksdb_data/`** 폴더에 `LOG`, `MANIFEST`, `CURRENT` 파일이 생성되어 있는지 확인합니다. (Docker 바인드 마운트를 통해 컨테이너 내부 데이터가 호스트에 실시간으로 저장됩니다.)
 
 ### 2. 성능 벤치마킹 (db_bench)
 
@@ -71,7 +71,41 @@ TARGET=db_bench DB_BENCH_ARGS="--benchmarks=fillseq,readrandom --bloom_bits=10 -
 
 실행 결과는 **`db_bench_log/`** 폴더에 `db_bench_(실행시각).log` 파일로 자동 저장됩니다. 로그 파일 첫 줄에 실행 명령어, 이후 줄에 전체 출력 내역이 기록됩니다.
 
-## 🛑 서버 종료 및 정리
+### 3. 로그 파서 (log_parser)
+
+`db_bench` 로그에서 원하는 Ticker, Histogram 항목만 추출하는 도구입니다. 호스트에서 직접 빌드하여 사용할 수 있습니다.
+
+**빌드**
+```
+g++ -std=c++20 -o log_parser.exe log_parser.cpp
+```
+
+**실행**
+```
+./log_parser.exe
+```
+
+최초 실행 시 `log_parser_config.txt`가 자동 생성되고 프로그램이 종료됩니다. 아래 예시를 참고하여 파일을 채운 뒤 다시 실행하세요.
+
+```
+[logs]
+db_bench_20260423_045831.log
+
+[tickers]
+rocksdb.bloom.filter.useful
+rocksdb.bloom.filter.full.positive
+
+[histograms]
+rocksdb.db.get.micros
+```
+
+- **`[logs]`** : 파싱할 `db_bench_log/` 내 로그 파일명 (여러 줄 가능)
+- **`[tickers]`** : 추출할 Ticker 항목명
+- **`[histograms]`** : 추출할 Histogram 항목명
+
+출력 결과는 **`db_bench_log/log_parser_(실행시각).txt`** 로 저장됩니다.
+
+## 🛑 컨테이너 종료 및 정리
 
 테스트가 끝나면 다음 명령어로 컨테이너를 종료합니다.
 
@@ -89,5 +123,7 @@ docker-compose down
 - **`CMakeLists.txt`** : C++ 표준(20) 설정 및 RocksDB 정적 라이브러리 연결을 위한 빌드 스크립트입니다.
 - **`rocksdb_data/`** : RocksDB의 실제 데이터베이스 파일들이 저장되는 물리적 공간입니다.
 - **`db_bench_log/`** : `db_bench` 실행 결과가 타임스탬프 단위로 자동 저장되는 로그 폴더입니다.
+- **`log_parser.cpp`** : `db_bench` 로그에서 원하는 통계 항목만 추출하는 파서입니다. 호스트에서 직접 빌드합니다.
+- **`log_parser_config.txt`** : 파서 설정 파일. 최초 실행 시 자동 생성됩니다.
 
 **2026-1 오픈소스SW분석(빅데이터) RocksDB 실습 이주형**
