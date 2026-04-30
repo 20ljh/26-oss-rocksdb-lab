@@ -114,8 +114,13 @@ int main(int argc, char* argv[]){
                 int len = histograms[i].size();
                 if((int)line.size() > len &&
                    line.compare(0, len, histograms[i]) == 0 &&
-                   line[len] == ' ')
-                    matched_histograms[i] = line;
+                   line[len] == ' '){
+                    // db_bench 결과 형식: name<spaces>:<spaces><stats>
+                    size_t pos = len;
+                    while(pos < line.size() && line[pos] == ' ') pos++;
+                    if(pos < line.size() && line[pos] == ':')
+                        matched_histograms[i] = line;
+                }
             }
         }
         log_file.close();
