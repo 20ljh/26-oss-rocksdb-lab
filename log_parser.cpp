@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
@@ -70,6 +71,28 @@ int main(int argc, char* argv[]){
         if(section == 3) { histograms.push_back(line); }
     }
     stats_file.close();
+
+    // * 와일드카드 : db_bench_log/ 모든 로그 파일 수집
+    bool has_wildcard = false;
+    for(auto& f : log_files)
+        if(f == "*") { has_wildcard = true; break; }
+
+    if(has_wildcard){
+        log_files.clear();
+        if(fs::exists(logs_dir) && fs::is_directory(logs_dir)){
+            for(auto& entry : fs::directory_iterator(logs_dir)){
+                if(!entry.is_regular_file()) continue;
+                string name = entry.path().filename().string();
+                if(name.rfind("log_parser_", 0) == 0) continue;
+                log_files.push_back(name);
+            }
+            sort(log_files.begin(), log_files.end());
+        }
+        if(log_files.empty()){
+            cerr << "Error: no log files found in " << logs_dir << "\n";
+            return 1;
+        }
+    }
 
     if(log_files.empty()){
         cerr << "Error: no log files listed under [logs]\n";
