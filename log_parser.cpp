@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     // 설정 파일이 없으면 기본 템플릿 생성 후 종료
     if(!fs::exists(stats_path)){
         ofstream init(stats_path);
-        init << "[logs]\n\n[tickers]\n\n[histograms]\n";
+        init << "[logs]\n\n[tickers]\n\n[histograms]\n\n[read/write]\n";
         init.close();
         cout << "Config file created: " << stats_path << "\n";
         cout << "Fill in the config and run again.\n";
@@ -51,10 +51,10 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    vector<string> log_files, tickers, histograms;
+    vector<string> log_files, tickers, histograms, rw_items;
 
     // 섹션 헤더에 따라 각 벡터에 항목 분류
-    // 0: none, 1: logs, 2: tickers, 3: histograms
+    // 0: none, 1: logs, 2: tickers, 3: histograms, 4: read/write
     int section = 0;
     string line;
     while(getline(stats_file, line)){
@@ -62,6 +62,7 @@ int main(int argc, char* argv[]){
         if(line == "[logs]")       { section = 1; continue; }
         if(line == "[tickers]")    { section = 2; continue; }
         if(line == "[histograms]") { section = 3; continue; }
+        if(line == "[read/write]") { section = 4; continue; }
 
         if(line.empty())
             continue;
@@ -69,6 +70,7 @@ int main(int argc, char* argv[]){
         if(section == 1) { log_files.push_back(line); }
         if(section == 2) { tickers.push_back(line); }
         if(section == 3) { histograms.push_back(line); }
+        if(section == 4) { rw_items.push_back(line); }
     }
     stats_file.close();
 
@@ -122,6 +124,7 @@ int main(int argc, char* argv[]){
 
         vector<string> matched_tickers(tickers.size());
         vector<string> matched_histograms(histograms.size());
+        vector<string> matched_rw(rw_items.size());
 
         // 로그를 한 줄씩 읽으며 설정된 항목과 이름이 일치하는 줄 저장
         while(getline(log_file, line)){
@@ -133,16 +136,24 @@ int main(int argc, char* argv[]){
                    line[len] == ' ')      // 이름 뒤에 공백이 있어야 정확히 일치
                     matched_tickers[i] = line;
             }
+            // [histograms]: "name P50 : ..." 형식 — 이름 + 공백으로 매칭
             for(int i = 0; i < (int)histograms.size(); i++){
                 int len = histograms[i].size();
                 if((int)line.size() > len &&
                    line.compare(0, len, histograms[i]) == 0 &&
+                   line[len] == ' ')
+                    matched_histograms[i] = line;
+            }
+            // [read/write]: "name      :  ... micros/op ..." 형식 — 이름 뒤 공백 건너뛰고 : 확인
+            for(int i = 0; i < (int)rw_items.size(); i++){
+                int len = rw_items[i].size();
+                if((int)line.size() > len &&
+                   line.compare(0, len, rw_items[i]) == 0 &&
                    line[len] == ' '){
-                    // db_bench 결과 형식: name<spaces>:<spaces><stats>
                     size_t pos = len;
                     while(pos < line.size() && line[pos] == ' ') pos++;
                     if(pos < line.size() && line[pos] == ':')
-                        matched_histograms[i] = line;
+                        matched_rw[i] = line;
                 }
             }
         }
@@ -162,6 +173,12 @@ int main(int argc, char* argv[]){
                 out << matched_histograms[i] << "\n";
             else
                 out << histograms[i] << " : NOT FOUND\n";
+        }
+        for(int i = 0; i < (int)rw_items.size(); i++){
+            if(!matched_rw[i].empty())
+                out << matched_rw[i] << "\n";
+            else
+                out << rw_items[i] << " : NOT FOUND\n";
         }
         out << "\n";
     }

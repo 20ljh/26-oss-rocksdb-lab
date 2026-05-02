@@ -87,21 +87,26 @@ g++ -std=c++20 -o log_parser.exe log_parser.cpp
 
 최초 실행 시 `log_parser_config.txt`가 자동 생성되고 프로그램이 종료됩니다. 아래 예시를 참고하여 파일을 채운 뒤 다시 실행하세요.
 
+`[logs]`에 `*`를 단독으로 입력하면 `db_bench_log/` 내 모든 로그 파일을 자동으로 파싱 대상으로 지정합니다.
+
 ```
 [logs]
-db_bench_20260423_045831.log
+*
 
 [tickers]
 rocksdb.bloom.filter.useful
-rocksdb.bloom.filter.full.positive
 
 [histograms]
 rocksdb.db.get.micros
+
+[read/write]
+fillseq
 ```
 
-- **`[logs]`** : 파싱할 `db_bench_log/` 내 로그 파일명 (여러 줄 가능)
-- **`[tickers]`** : 추출할 Ticker 항목명
-- **`[histograms]`** : 추출할 Histogram 항목명
+- **`[logs]`** : 파싱할 `db_bench_log/` 내 로그 파일명 (여러 줄 가능). `*` 입력 시 폴더 내 전체 로그 파일 자동 포함
+- **`[tickers]`** : 추출할 Ticker 항목명 (`rocksdb.bloom.filter.useful COUNT : ...` 형식)
+- **`[histograms]`** : 추출할 Histogram 항목명 (`rocksdb.db.get.micros P50 : ...` 형식)
+- **`[read/write]`** : 추출할 벤치마크 결과 항목명 (`fillseq      :       ... micros/op` 형식)
 
 출력 결과는 **`db_bench_log/log_parser_(실행시각).txt`** 로 저장됩니다.
 
