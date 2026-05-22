@@ -8,6 +8,11 @@ rocksdb-src/
 log_parser.exe
 log_parser_config.txt
 
+# 자동 조합 벤치마크 실행기 실행 파일 및 임시 파일
+bench_option.txt
+bench_runner.exe
+_bench_runner_tmp.sh
+
 # RocksDB db_bench 결과 저장 폴더
 db_bench_log/
 

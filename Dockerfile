@@ -56,7 +56,7 @@ COPY --from=builder /app/build/rocksdb_test .
 COPY --from=builder /src/rocksdb/db_bench .
 
 COPY --from=builder /app/run.sh .
-RUN chmod +x run.sh
+RUN sed -i 's/\r//' run.sh && chmod +x run.sh
 
 # TARGET=db_bench -> db_bench 실행 (DB_BENCH_ARGS로 옵션 전달)
 # TARGET 미지정 -> rocksdb_test 실행

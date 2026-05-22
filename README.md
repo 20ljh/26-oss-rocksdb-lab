@@ -71,7 +71,9 @@ TARGET=db_bench DB_BENCH_ARGS="--benchmarks=fillseq,readrandom --bloom_bits=10 -
 
 실행 결과는 **`db_bench_log/`** 폴더에 `db_bench_(실행시각).log` 파일로 자동 저장됩니다. 로그 파일 첫 줄에 실행 명령어, 이후 줄에 전체 출력 내역이 기록됩니다.
 
-### 3. 로그 파서 (log_parser)
+## 🔧 추가 도구 (Tools)
+
+### 1. 로그 파서 (log_parser)
 
 `db_bench` 로그에서 원하는 Ticker, Histogram 항목만 추출하는 도구입니다. 호스트에서 직접 빌드하여 사용할 수 있습니다.
 
@@ -110,6 +112,38 @@ fillseq
 
 출력 결과는 **`db_bench_log/log_parser_(실행시각).txt`** 로 저장됩니다.
 
+### 2. 자동 조합 벤치마킹 (bench_runner)
+
+여러 파라미터 값의 **모든 조합**을 자동으로 순차 실행하는 도구입니다. 호스트에서 직접 빌드하여 사용할 수 있습니다.
+
+**빌드**
+```
+g++ -std=c++20 -o bench_runner.exe bench_runner.cpp
+```
+
+**실행**
+```
+./bench_runner.exe
+```
+
+최초 실행 시 `bench_option.txt`가 자동 생성되고 프로그램이 종료됩니다. 아래 예시를 참고하여 파일을 채운 뒤 다시 실행하세요.
+
+```
+[manipulated]
+bloom_bits=0,10,20
+block_size=4096,16384
+
+[controlled]
+benchmarks=fillseq,readmissing
+statistics
+num=1000000
+```
+
+- **`[manipulated]`** : 쉼표로 구분된 값들의 **카르테시안 곱**으로 실행됩니다. 위 예시는 bloom_bits(3가지) × block_size(2가지) = **총 6회** 실행됩니다.
+- **`[controlled]`** : 모든 실행에 고정으로 전달되는 파라미터입니다. `=` 없이 단독으로 쓰면 boolean 플래그(`--statistics`)로 처리됩니다.
+
+각 실행마다 `docker-compose down → up` 을 반복해 컨테이너를 완전히 재시작하므로 실행 간 격리가 보장됩니다. 로그는 각 실행마다 **`db_bench_log/`** 폴더에 자동 저장됩니다.
+
 ## 🛑 컨테이너 종료 및 정리
 
 테스트가 끝나면 다음 명령어로 컨테이너를 종료합니다.
@@ -130,5 +164,7 @@ docker-compose down
 - **`db_bench_log/`** : `db_bench` 실행 결과가 타임스탬프 단위로 자동 저장되는 로그 폴더입니다.
 - **`log_parser.cpp`** : `db_bench` 로그에서 원하는 통계 항목만 추출하는 파서입니다. 호스트에서 직접 빌드합니다.
 - **`log_parser_config.txt`** : 파서 설정 파일. 최초 실행 시 자동 생성됩니다.
+- **`bench_runner.cpp`** : `db_bench` 파라미터 조합을 자동으로 생성해 순차 실행하는 도구입니다. 호스트에서 직접 빌드합니다.
+- **`bench_option.txt`** : bench_runner 설정 파일. `[manipulated]`(조합 실행 파라미터)와 `[controlled]`(고정 파라미터)로 구성됩니다. 최초 실행 시 자동 생성됩니다.
 
 **2026-1 오픈소스SW분석(빅데이터) RocksDB 실습 이주형**
